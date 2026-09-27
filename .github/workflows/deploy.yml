@@ -65,7 +65,7 @@ jobs:
       - name: Set lowercase variables
         run: |
           echo "ACTOR_LC=${{ github.actor }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
-          echo "IMAGE_NAME_LC_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "IMAGE_NAME_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       # action для авторизации в ghcr
       - name: Login to GitHub Container Registry
