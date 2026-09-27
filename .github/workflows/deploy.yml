@@ -1,0 +1,92 @@
+name: Deploy Landing Page to GitHub Pages & ghcr.io
+
+on:
+  push:
+      branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  packages: write # для пуша Docker-образа в ghcr.io
+
+concurrency:
+  group: "ci-cd-pipeline"
+  cancel-in-progress: true
+
+jobs:
+  # Деплой на GitHub Pages
+  deploy-2-pages:
+    enviroment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build proj
+        run: npm run build
+
+      - name: Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: '/dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+  
+  # Сборка и пуш docker-образа на docker-hub и ghcr
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set lowercase GitHub Actor
+        run: |
+          echo "ACTOR_LC=${{ github.actor }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+
+      # action для авторизации в ghcr
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.ACTOR_LC }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # action для авторизации в docker hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:v1
+            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME }}:v1
