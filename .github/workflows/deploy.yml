@@ -6,7 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 permissions:
   contents: read
@@ -63,9 +62,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set lowercase GitHub Actor
+      - name: Set lowercase variables
         run: |
           echo "ACTOR_LC=${{ github.actor }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+          echo "IMAGE_NAME_LC_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       # action для авторизации в ghcr
       - name: Login to GitHub Container Registry
@@ -92,7 +92,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:v1
-            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME }}:latest
-            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME }}:v1
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME_LC }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME_LC }}:v1
+            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME_LC }}:latest
+            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME_LC }}:v1
