@@ -1,0 +1,7 @@
+services:
+  landing-page:
+    build: .
+    container_name: landing-page
+    restart: unless-stopped
+    ports:
+      - "8089:80"
