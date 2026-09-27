@@ -64,8 +64,8 @@ jobs:
 
       - name: Set lowercase variables
         run: |
-          echo "ACTOR_LC=${{ github.actor }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
           echo "IMAGE_NAME_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "REPO_ONLY_LC=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       # action для авторизации в ghcr
       - name: Login to GitHub Container Registry
@@ -92,7 +92,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME_LC }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME_LC }}:v1
-            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME_LC }}:latest
-            ghcr.io/${{ env.ACTOR_LC }}/${{ env.IMAGE_NAME_LC }}:v1
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.REPO_ONLY_LC }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.REPO_ONLY_LC }}:v1
+            ghcr.io/${{ env.IMAGE_NAME_LC }}:latest
+            ghcr.io/${{ env.IMAGE_NAME_LC }}:v1
